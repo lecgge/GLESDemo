@@ -1,10 +1,8 @@
 package com.example.glesdemo
 
-import ColorShaderProgram
 import android.content.Context
 import android.opengl.GLES20
 import android.opengl.GLES20.*
-import android.provider.SyncStateContract
 import com.carlospinan.airhockeytouch.common.GLBaseRenderer
 import com.example.glesdemo.common.BYTES_PER_FLOAT
 import com.example.glesdemo.ext.isDebugVersion
