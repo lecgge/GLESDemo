@@ -1,29 +1,55 @@
 package com.example.glesdemo.ext
 
 import android.content.Context
+import android.content.pm.ApplicationInfo
+import android.content.res.Resources
 import android.graphics.BitmapFactory
 import android.opengl.GLES20.*
 import android.opengl.GLUtils
+import androidx.annotation.RawRes
 import com.example.glesdemo.utils.OpenGLES20
 import com.example.glesdemo.utils.log
 import java.io.BufferedReader
+import java.io.IOException
 import java.io.InputStreamReader
 import java.io.Reader
 
-fun Context.readTextFileFromResource(resourceId: Int): String {
-    val body = StringBuilder()
-    this.apply {
-        val stream = resources.openRawResource(resourceId)
-        val inputStreamReader = InputStreamReader(stream)
-        val bufferedReader = BufferedReader(inputStreamReader as Reader?)
-        var newLine: String? = bufferedReader.readLine()
-        while (newLine != null) {
-            body.append(newLine).append("\n")
-            newLine = bufferedReader.readLine()
+
+/**
+ * 将着色器加载到内存中
+ * @param resId  raw 目录下的 GLSL文件id
+ */
+fun Context.readStringFromRaw(@RawRes resId: Int): String {
+    //通过Buffer流来读取GLSL文件
+    return runCatching {
+        val builder = StringBuilder()
+        val reader = BufferedReader(InputStreamReader(resources.openRawResource(resId)))
+        var nextLine: String? = reader.readLine()
+        while (nextLine != null) {
+            builder.append(nextLine).append("\n")
+            nextLine = reader.readLine()
         }
-    }
-    return body.toString()
+        reader.close()
+        builder.toString()
+    }.onFailure {
+        when (it) {
+            is IOException -> {
+                throw RuntimeException("Could not open resource: $resId", it)
+            }
+            is Resources.NotFoundException -> {
+                throw RuntimeException("Resource not found: $resId", it)
+            }
+            else -> {
+
+            }
+        }
+    }.getOrThrow()
 }
+
+fun Context.isDebugVersion(): Boolean =
+    kotlin.runCatching {
+        (applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
+    }.getOrDefault(false)
 
 /**
  * Loads a texture from a resource ID, returning the OpenGL ID for that
