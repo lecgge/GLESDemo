@@ -1,5 +1,6 @@
 import android.content.Context
-import android.opengl.GLES20.glUniformMatrix4fv
+import android.opengl.GLES20.*
+import android.util.Log
 import com.example.glesdemo.R
 import com.example.glesdemo.common.ShaderProgram
 

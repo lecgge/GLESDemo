@@ -2,6 +2,7 @@ package com.example.glesdemo.common
 
 import android.content.Context
 import android.opengl.GLES20.*
+import android.util.Log
 import com.example.glesdemo.ext.readStringFromRaw
 import com.example.glesdemo.utils.ShaderHelper
 
@@ -27,5 +28,7 @@ abstract class ShaderProgram(
 
     fun useProgram() {
         glUseProgram(programId)
+        Log.d("TAG", "glUseProgram: ${glGetError()}")
+
     }
 }

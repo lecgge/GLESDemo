@@ -1,10 +1,10 @@
 package com.example.glesdemo.objects
 
+import VertexArray
 import android.opengl.GLES20.*
 import android.util.Log
 import com.example.glesdemo.programs.TextureShaderProgram
 import com.example.glesdemo.common.BYTES_PER_FLOAT
-import com.example.glesdemo.data.VertexArray
 
 class Car {
 

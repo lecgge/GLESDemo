@@ -1,25 +1,18 @@
 package com.example.glesdemo
 
-import ColorShaderProgram
 import android.content.Context
-import android.opengl.GLES20
 import android.opengl.GLES20.*
+import android.opengl.Matrix
 import com.carlospinan.airhockeytouch.common.GLBaseRenderer
-import com.example.glesdemo.common.BYTES_PER_FLOAT
-import com.example.glesdemo.ext.isDebugVersion
+import com.example.glesdemo.ext.MatrixHelper
 import com.example.glesdemo.ext.loadTexture
-import com.example.glesdemo.ext.readStringFromRaw
 import com.example.glesdemo.objects.Car
 import com.example.glesdemo.programs.TextureShaderProgram
 import com.example.glesdemo.utils.OpenGLES20
-import com.example.glesdemo.utils.ShaderHelper
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 
 class CarRenderer(val context: Context): GLBaseRenderer() {
-    private var programId = 0
 
     /**
      * 透视投影矩阵
@@ -32,68 +25,55 @@ class CarRenderer(val context: Context): GLBaseRenderer() {
     private val modelMatrix = FloatArray(16)
 
     private lateinit var textureShaderProgram: TextureShaderProgram
-    private lateinit var colorShaderProgram: ColorShaderProgram
 
     private lateinit var car: Car
 
     private var texture: Int = 0
 
-//    private val vertexData = ByteBuffer
-//        .allocateDirect(shape.size * BYTES_PER_FLOAT)
-//        .order(ByteOrder.nativeOrder())
-//        .asFloatBuffer()
-//        .put(shape)
-
-    private var uColorLocation = 0
-
-    private var aPositionLocation = 0
-
-//    companion object{
-//
-//        private const val POSITION_COMPONENT_COUNT = 2
-//
-//        private const val U_COLOR = "u_Color"
-//
-//        private const val A_POSITION = "a_Position"
-//
-//        private const val TEXTURE_COORDINATES_COMPONENT_COUNT = 2
-//
-//        private const val STRIDE: Int = (POSITION_COMPONENT_COUNT
-//                + TEXTURE_COORDINATES_COMPONENT_COUNT) * BYTES_PER_FLOAT
-//
-//        val shape = floatArrayOf(
-//            // 数据顺序: X, Y, S, T
-//            // 三角形扇形
-//            0f, 0f, 0.5f, 0.5f,
-//            -0.5f, -0.8f, 0f, 0.9f,
-//            0.5f, -0.8f, 1f, 0.9f,
-//            0.5f, 0.8f, 1f, 0.1f,
-//            -0.5f, 0.8f, 0f, 0.1f,
-//            -0.5f, -0.8f, 0f, 0.9f
-//        )
-//    }
 
     override fun onSurfaceCreated(unused: GL10?, eglConfig: EGLConfig?) {
         glClearColor(0f,0f,0f,1f)
         car = Car()
 
         textureShaderProgram = TextureShaderProgram(context)
-        colorShaderProgram = ColorShaderProgram(context)
 
         texture = context.loadTexture(R.drawable.img)
     }
 
     override fun onSurfaceChanged(unused: GL10?, width: Int, height: Int) {
         OpenGLES20.gl2ViewPort(0,0,width, height)
+
+        // 创建透视投影
+        MatrixHelper.perspectivew(
+            projectionMatrix,
+            55f,
+            width.toFloat() / height.toFloat(),
+            1f,
+            10f
+        )
+        //调整模型矩阵
+        // 定义模型矩阵
+        Matrix.setIdentityM(modelMatrix, 0)
+        //在上面基础上,在Z轴平移-2.5个单位
+        Matrix.translateM(modelMatrix, 0, 0f, 0f, -2.5f)
+        Matrix.rotateM(modelMatrix, 0, -50f, 1f, 0f, 0f)
+
+        val temp = FloatArray(16)
+        //矩阵相乘
+        Matrix.multiplyMM(temp, 0, projectionMatrix, 0, modelMatrix, 0)
+        System.arraycopy(temp, 0, projectionMatrix, 0, temp.size)
+
+
     }
 
     override fun onDrawFrame(unused: GL10?) {
         glClear(GL_COLOR_BUFFER_BIT)
 
         textureShaderProgram.useProgram()
-        textureShaderProgram.setUniforms(projectionMatrix,texture)
+        textureShaderProgram.setUniforms(projectionMatrix, texture)
         car.bindData(textureShaderProgram)
-        glGetError()
         car.draw()
+
+
     }
 }
